@@ -1,14 +1,12 @@
 const Pitchfinder = (function() {
-
-function YINDetector(config) {
+    
+  function YINDetector(config) {
     const threshold = (config && config.threshold) || 0.1;
     const sampleRate = (config && config.sampleRate) || 44100;
-
     return function(float32AudioBuffer) {
       const yinBufferLength = Math.floor(float32AudioBuffer.length / 2);
       const yinBuffer = new Float32Array(yinBufferLength);
       let probability, tau;
-
       for (let t = 0; t < yinBufferLength; t++) {
         yinBuffer[t] = 0;
       }
@@ -18,15 +16,13 @@ function YINDetector(config) {
           yinBuffer[t] += delta * delta;
         }
       }
-
       yinBuffer[0] = 1;
+        
       let runningSum = 0;
       for (let t = 1; t < yinBufferLength; t++) {
         runningSum += yinBuffer[t];
         yinBuffer[t] *= t / runningSum;
       }
-
-
       for (let t = 2; t < yinBufferLength; t++) {
         if (yinBuffer[t] < threshold) {
           while (t + 1 < yinBufferLength && yinBuffer[t + 1] < yinBuffer[t]) {
@@ -36,24 +32,18 @@ function YINDetector(config) {
           break;
         }
       }
-
       if (tau === undefined) {
         return null;
       }
-
       const betterTau = tau;
       const frequency = sampleRate / betterTau;
-
       probability = 1 - yinBuffer[tau];
-
       if (probability < 0.1 || frequency > 5000) {
         return null;
       }
-
       return frequency;
     };
   }
-
   return {
     YIN: YINDetector,
   };
@@ -63,9 +53,9 @@ class PitchDetector {
   constructor(runtime) {
     this.runtime = runtime;
     this.frequency = 0;
-    this.note = '';
+    this.note = '-'; // Ορισμός αρχικής τιμής σε '-'
     this.noteNumber = 0;
-    this.micOpen = false; // Μετονομασία της ιδιότητας
+    this.micOpen = false;
     this.audioContext = null;
     this.analyser = null;
     this.microphone = null;
@@ -78,7 +68,7 @@ class PitchDetector {
     return {
       id: 'pitchdetector',
       name: 'Pitch Detector',
-      color1: '#AA00FF', // Μωβ χρώμα
+      color1: '#AA00FF',
       blocks: [
         {
           opcode: 'startListening',
@@ -142,7 +132,7 @@ class PitchDetector {
     this.microphone = null;
     this.pitchDetector = null;
     this.frequency = 0;
-    this.note = '';
+    this.note = '-'; // Επαναφορά της τιμής σε '-'
     this.noteNumber = 0;
   }
 
@@ -151,7 +141,7 @@ class PitchDetector {
   }
 
   getNote() {
-    return this.note || '';
+    return this.note || '-';
   }
 
   getNoteNumber() {
@@ -164,11 +154,8 @@ class PitchDetector {
 
   updatePitch() {
     if (!this.isListening) return;
-
-
     const sampleCount = 5;
     const notesArray = [];
-
     for (let i = 0; i < sampleCount; i++) {
       this.analyser.getFloatTimeDomainData(this.dataArray);
       const frequency = this.pitchDetector(this.dataArray);
@@ -178,8 +165,6 @@ class PitchDetector {
         notesArray.push({ note, noteNumber, frequency });
       }
     }
-
-
     const noteCounts = {};
     for (const item of notesArray) {
       const noteNum = item.noteNumber;
@@ -187,7 +172,6 @@ class PitchDetector {
         noteCounts[noteNum] = (noteCounts[noteNum] || 0) + 1;
       }
     }
-
     let mostFrequentNoteNumber = null;
     let maxCount = 0;
     for (const noteNum in noteCounts) {
@@ -196,24 +180,19 @@ class PitchDetector {
         mostFrequentNoteNumber = parseInt(noteNum);
       }
     }
-
-
     if (mostFrequentNoteNumber !== null) {
       this.noteNumber = mostFrequentNoteNumber;
       this.note = this.midiNoteNumberToNoteName(this.noteNumber);
-
       const frequenciesOfMostFrequentNote = notesArray
         .filter(item => item.noteNumber === this.noteNumber)
         .map(item => item.frequency);
-
       const sumFrequencies = frequenciesOfMostFrequentNote.reduce((a, b) => a + b, 0);
       this.frequency = sumFrequencies / frequenciesOfMostFrequentNote.length;
     } else {
-      this.note = '';
+      this.note = '-'; // Ορισμός της τιμής σε '-'
       this.noteNumber = 0;
       this.frequency = 0;
     }
-
     requestAnimationFrame(this.updatePitch.bind(this));
   }
 
@@ -238,7 +217,7 @@ class PitchDetector {
       'B',
     ];
     const noteIndex = (noteNumber % 12 + 12) % 12;
-    const octave = Math.floor(noteNumber / 12) - 1; // Διόρθωση της οκτάβας
+    const octave = Math.floor(noteNumber / 12) - 1;
     const note = noteStrings[noteIndex];
     return note + octave;
   }
