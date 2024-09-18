@@ -202,20 +202,7 @@ class PitchDetector {
   }
 
   midiNoteNumberToNoteName(noteNumber) {
-    const noteStrings = [
-      'C',
-      'C#',
-      'D',
-      'D#',
-      'E',
-      'F',
-      'F#',
-      'G',
-      'G#',
-      'A',
-      'A#',
-      'B',
-    ];
+    const noteStrings = [ 'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B' ];
     const noteIndex = (noteNumber % 12 + 12) % 12;
     const octave = Math.floor(noteNumber / 12) - 1;
     const note = noteStrings[noteIndex];
